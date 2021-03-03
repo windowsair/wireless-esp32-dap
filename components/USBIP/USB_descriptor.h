@@ -6,7 +6,7 @@
 // Vendor ID assigned by USB-IF (idVendor).
 #define USBD0_DEV_DESC_IDVENDOR 0xC251
 // Product ID assigned by manufacturer (idProduct).
-#define USBD0_DEV_DESC_IDPRODUCT 0xF00A
+#define USBD0_DEV_DESC_IDPRODUCT 0xF00B
 // Device Release Number in binary-coded decimal (bcdDevice).
 #define USBD0_DEV_DESC_BCDDEVICE 0x0100
 
