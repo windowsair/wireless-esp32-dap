@@ -26,20 +26,21 @@
 #include "main/wifi_configuration.h"
 #include "main/usbip_server.h"
 
-// extern TaskHandle_t kDAPTaskHandle;
-// extern int kRestartDAPHandle;
-//// FIXME: esp32 delete this
-TaskHandle_t kDAPTaskHandle;
-int kRestartDAPHandle;
+extern TaskHandle_t kDAPTaskHandle;
+extern int kRestartDAPHandle;
+
 
 
 uint8_t kState = ACCEPTING;
 int kSock = -1;
 
+
+static uint8_t tcp_rx_buffer[1024];
+static char addr_str[128];
+
 void tcp_server_task(void *pvParameters)
 {
-    uint8_t tcp_rx_buffer[1024];
-    char addr_str[128];
+
     int addr_family;
     int ip_protocol;
 
@@ -145,8 +146,9 @@ void tcp_server_task(void *pvParameters)
                     switch (kState)
                     {
                     case ACCEPTING:
-                    case ATTACHING:
                         kState = ATTACHING;
+
+                    case ATTACHING:
                         attach(tcp_rx_buffer, len);
                         break;
 

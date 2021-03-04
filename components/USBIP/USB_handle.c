@@ -19,7 +19,7 @@
 #include "components/USBIP/USB_descriptor.h"
 #include "components/USBIP/MSOS20_descriptor.h"
 
-#include "usbip_server.h"
+#include "main/usbip_server.h"
 
 
 

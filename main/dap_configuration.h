@@ -3,7 +3,7 @@
 
 /**
  * @brief Specify the use of WINUSB
- * 
+ *
  */
 #define USE_WINUSB 1
 

@@ -10,6 +10,7 @@
 #include "components/USBIP/USB_descriptor.h"
 
 #include "main/usbip_server.h"
+#include "main/dap_handle.h"
 
 
 // attach helper function
@@ -180,11 +181,10 @@ static void send_interface_info()
 
 int emulate(uint8_t *buffer, uint32_t length)
 {
-    //// FIXME: esp32
-    // if(fast_reply(buffer, length))
-    // {
-    //     return 0;
-    // }
+    if(fast_reply(buffer, length))
+    {
+        return 0;
+    }
 
     int command = read_stage2_command((usbip_stage2_header *)buffer, length);
     if (command < 0)
@@ -288,14 +288,12 @@ static int handle_submit(usbip_stage2_header *header, uint32_t length)
         if (header->base.direction == 0)
         {
             //printf("EP 01 DATA FROM HOST");
-            //// FIXME: esp32
-            //handle_dap_data_request(header ,length);
+            handle_dap_data_request(header ,length);
         }
         else
         {
             // printf("EP 01 DATA TO HOST\r\n");
-            //// FIXME: esp32
-            //handle_dap_data_response(header);
+            handle_dap_data_response(header);
         }
         break;
     // endpoint 2 for SWO trace
@@ -309,7 +307,7 @@ static int handle_submit(usbip_stage2_header *header, uint32_t length)
         {
             // printf("EP 02 DATA TO HOST");
             //// FIXME: esp32
-            //handle_swo_trace_response(header);
+            handle_swo_trace_response(header);
         }
         break;
     // request to save data to device
