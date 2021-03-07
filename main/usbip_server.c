@@ -181,6 +181,14 @@ static void send_interface_info()
 
 int emulate(uint8_t *buffer, uint32_t length)
 {
+    if (length < 48)
+    {
+        for (int i = 0; i < 100; i++)
+        {
+            printf("TCP issue!\r\n");
+        }
+    }
+
     if(fast_reply(buffer, length))
     {
         return 0;

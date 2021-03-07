@@ -387,6 +387,10 @@ static uint32_t DAP_SWJ_Clock(const uint8_t *request, uint8_t *response) {
   // Note that the maximum IO frequency of esp8266 is less than 2MHz
 
   // clock >= 10MHz -> use 40MHz SPI
+
+  //// FIXME: remove this
+  clock = 10000000;
+
   if (clock >= 10000000) {
     DAP_SPI_Init();
     DAP_Data.fast_clock  = 1U;

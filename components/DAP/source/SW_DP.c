@@ -39,14 +39,13 @@
  *
  */
 
+#include <stdio.h>
 
 #include "components/DAP/config/DAP_config.h"
 #include "components/DAP/include/DAP.h"
 
-
-////FIXME: esp32
-//#include "spi_op.h"
-//#include "spi_switch.h"
+#include "components/DAP/include/spi_op.h"
+#include "components/DAP/include/spi_switch.h"
 
 #include "components/DAP/include/dap_utility.h"
 
@@ -139,9 +138,8 @@ void SWJ_Sequence_GPIO (uint32_t count, const uint8_t *data, uint8_t need_delay)
 }
 
 void SWJ_Sequence_SPI (uint32_t count, const uint8_t *data) {
-  //// FIXME: esp32
-  // DAP_SPI_Enable();
-  // DAP_SPI_WriteBits(count, data);
+  DAP_SPI_Enable();
+  DAP_SPI_WriteBits(count, data);
 }
 #endif
 
@@ -155,7 +153,7 @@ void SWJ_Sequence_SPI (uint32_t count, const uint8_t *data) {
 void SWD_Sequence (uint32_t info, const uint8_t *swdo, uint8_t *swdi) {
   if (SWD_TransferSpeed == kTransfer_SPI) {
     //// FIXME: esp32
-    //SWD_Sequence_SPI(info, swdo, swdi);
+    SWD_Sequence_SPI(info, swdo, swdi);
   } else {
     SWD_Sequence_GPIO(info, swdo, swdi);
   }
@@ -196,21 +194,21 @@ void SWD_Sequence_GPIO (uint32_t info, const uint8_t *swdo, uint8_t *swdi) {
     }
   }
 }
-//// FIXME: esp32
-// void SWD_Sequence_SPI (uint32_t info, const uint8_t *swdo, uint8_t *swdi) {
-//   uint32_t n;
-//   n = info & SWD_SEQUENCE_CLK;
-//   if (n == 0U) {
-//     n = 64U;
-//   }
-//   // n = 1 ~ 64
 
-//   if (info & SWD_SEQUENCE_DIN) {
-//     DAP_SPI_ReadBits(n, swdi);
-//   } else {
-//     DAP_SPI_WriteBits(n, swdo);
-//   }
-// }
+void SWD_Sequence_SPI (uint32_t info, const uint8_t *swdo, uint8_t *swdi) {
+  uint32_t n;
+  n = info & SWD_SEQUENCE_CLK;
+  if (n == 0U) {
+    n = 64U;
+  }
+  // n = 1 ~ 64
+
+  if (info & SWD_SEQUENCE_DIN) {
+    DAP_SPI_ReadBits(n, swdi);
+  } else {
+    DAP_SPI_WriteBits(n, swdo);
+  }
+}
 
 #endif
 
@@ -222,168 +220,166 @@ void SWD_Sequence_GPIO (uint32_t info, const uint8_t *swdo, uint8_t *swdi) {
 //   request: A[3:2] RnW APnDP
 //   data:    DATA[31:0]
 //   return:  ACK[2:0]
-//// FIXME: esp32
-// static uint8_t SWD_Transfer_SPI (uint32_t request, uint32_t *data) {
-//   //// FIXME: overrun detection
-//   // SPI transfer mode does not require operations such as PIN_DELAY
-//   uint8_t ack;
-//   // uint32_t bit;
-//   uint32_t val;
-//   uint8_t parity;
-//   uint8_t computedParity;
+static uint8_t SWD_Transfer_SPI (uint32_t request, uint32_t *data) {
+  //// FIXME: overrun detection
+  // SPI transfer mode does not require operations such as PIN_DELAY
+  uint8_t ack;
+  // uint32_t bit;
+  uint32_t val;
+  uint8_t parity;
+  uint8_t computedParity;
 
-//   uint32_t n;
+  uint32_t n;
 
-//   const uint8_t constantBits = 0b10000001U; /* Start Bit  & Stop Bit & Park Bit is fixed. */
-//   uint8_t requestByte;  /* LSB */
+  const uint8_t constantBits = 0b10000001U; /* Start Bit  & Stop Bit & Park Bit is fixed. */
+  uint8_t requestByte;  /* LSB */
 
 
-//   DAP_SPI_Enable();
+  DAP_SPI_Enable();
 
-//   requestByte = constantBits | (((uint8_t)(request & 0xFU)) << 1U) | (ParityEvenUint8(request & 0xFU) << 5U);
-//   /* For 4bit, Parity can be equivalent to 8bit with all 0 high bits */
+  requestByte = constantBits | (((uint8_t)(request & 0xFU)) << 1U) | (ParityEvenUint8(request & 0xFU) << 5U);
+  /* For 4bit, Parity can be equivalent to 8bit with all 0 high bits */
 
-//   #if (PRINT_SWD_PROTOCOL == 1)
-//   switch (requestByte)
-//     {
-//     case 0xA5U:
-//       printf("IDCODE\r\n");
-//       break;
-//     case 0xA9U:
-//       printf("W CTRL/STAT\r\n");
-//       break;
-//     case 0xBDU:
-//       printf("RDBUFF\r\n");
-//       break;
-//     case 0x8DU:
-//       printf("R CTRL/STAT\r\n");
-//       break;
-//     case 0x81U:
-//       printf("W ABORT\r\n");
-//       break;
-//     case 0xB1U:
-//       printf("W SELECT\r\n");
-//       break;
-//     case 0xBBU:
-//       printf("W APc\r\n");
-//       break;
-//     case 0x9FU:
-//       printf("R APc\r\n");
-//       break;
-//     case 0x8BU:
-//       printf("W AP4\r\n");
-//       break;
-//     case 0xA3U:
-//       printf("W AP0\r\n");
-//       break;
-//     case 0X87U:
-//       printf("R AP0\r\n");
-//       break;
-//     case 0xB7U:
-//       printf("R AP8\r\n");
-//       break;
-//     default:
-//     //W AP8
-//       printf("Unknown:%08x\r\n", requestByte);
-//       break;
-//     }
-//   #endif
+#if (PRINT_SWD_PROTOCOL == 1)
+  switch (requestByte)
+    {
+    case 0xA5U:
+      printf("IDCODE\r\n");
+      break;
+    case 0xA9U:
+      printf("W CTRL/STAT\r\n");
+      break;
+    case 0xBDU:
+      printf("RDBUFF\r\n");
+      break;
+    case 0x8DU:
+      printf("R CTRL/STAT\r\n");
+      break;
+    case 0x81U:
+      printf("W ABORT\r\n");
+      break;
+    case 0xB1U:
+      printf("W SELECT\r\n");
+      break;
+    case 0xBBU:
+      printf("W APc\r\n");
+      break;
+    case 0x9FU:
+      printf("R APc\r\n");
+      break;
+    case 0x8BU:
+      printf("W AP4\r\n");
+      break;
+    case 0xA3U:
+      printf("W AP0\r\n");
+      break;
+    case 0X87U:
+      printf("R AP0\r\n");
+      break;
+    case 0xB7U:
+      printf("R AP8\r\n");
+      break;
+    default:
+    //W AP8
+      printf("Unknown:%08x\r\n", requestByte);
+      break;
+    }
+#endif // PRINT_SWD_PROTOCOL == 1
 
-//   if (request & DAP_TRANSFER_RnW) {
-//     /* Read data */
+  if (request & DAP_TRANSFER_RnW) {
+    /* Read data */
 
-//     DAP_SPI_Send_Header(requestByte, &ack, 0); // 0 Trn After ACK
-//     if (ack == DAP_TRANSFER_OK) {
-//       DAP_SPI_Read_Data(&val, &parity);
-//       computedParity = ParityEvenUint32(val);
+    DAP_SPI_Send_Header(requestByte, &ack, 0); // 0 Trn After ACK
+    if (ack == DAP_TRANSFER_OK) {
+      DAP_SPI_Read_Data(&val, &parity);
+      computedParity = ParityEvenUint32(val);
 
-//       if ((computedParity ^ parity) & 1U) {
-//         ack = DAP_TRANSFER_ERROR;
-//       }
-//       if (data) { *data = val; }
+      if ((computedParity ^ parity) & 1U) {
+        ack = DAP_TRANSFER_ERROR;
+      }
+      if (data) { *data = val; }
 
-//       /* Capture Timestamp */
-//       if (request & DAP_TRANSFER_TIMESTAMP) {
-//         DAP_Data.timestamp = TIMESTAMP_GET();
-//       }
+      /* Capture Timestamp */
+      if (request & DAP_TRANSFER_TIMESTAMP) {
+        DAP_Data.timestamp = TIMESTAMP_GET();
+      }
 
-//     }
-//     else if ((ack == DAP_TRANSFER_WAIT) || (ack == DAP_TRANSFER_FAULT)) {
-//       DAP_SPI_Generate_Cycle(1);
-//       #if (PRINT_SWD_PROTOCOL == 1)
-//       printf("WAIT\r\n");
-//       #endif
+    }
+    else if ((ack == DAP_TRANSFER_WAIT) || (ack == DAP_TRANSFER_FAULT)) {
+      DAP_SPI_Generate_Cycle(1);
+#if (PRINT_SWD_PROTOCOL == 1)
+      printf("WAIT\r\n");
+#endif
 
-//       // return DAP_TRANSFER_WAIT;
-//     }
-//     else {
-//       /* Protocol error */
-//       DAP_SPI_Disable();
-//       PIN_SWDIO_TMS_SET();
+      // return DAP_TRANSFER_WAIT;
+    }
+    else {
+      /* Protocol error */
+      DAP_SPI_Disable();
+      PIN_SWDIO_TMS_SET();
 
-//       DAP_SPI_Enable();
-//       DAP_SPI_Protocol_Error_Read();
+      DAP_SPI_Enable();
+      DAP_SPI_Protocol_Error_Read();
 
-//       DAP_SPI_Disable();
-//       PIN_SWDIO_TMS_SET();
-//       #if (PRINT_SWD_PROTOCOL == 1)
-//       printf("Protocol Error: Read\r\n");
-//       #endif
-//     }
+      DAP_SPI_Disable();
+      PIN_SWDIO_TMS_SET();
+      #if (PRINT_SWD_PROTOCOL == 1)
+      printf("Protocol Error: Read\r\n");
+      #endif
+    }
 
-//     return ((uint8_t)ack);
-//   }
-//   else {
-//     /* Write data */
-//     parity = ParityEvenUint32(*data);
-//     DAP_SPI_Send_Header(requestByte, &ack, 1); // 1 Trn After ACK
-//     if (ack == DAP_TRANSFER_OK) {
-//       DAP_SPI_Write_Data(*data, parity);
-//       /* Capture Timestamp */
-//       if (request & DAP_TRANSFER_TIMESTAMP) {
-//         DAP_Data.timestamp = TIMESTAMP_GET();
-//       }
-//       /* Idle cycles */
-//       n = DAP_Data.transfer.idle_cycles;
-//       if (n) { DAP_SPI_Generate_Cycle(n); }
+    return ((uint8_t)ack);
+  }
+  else {
+    /* Write data */
+    parity = ParityEvenUint32(*data);
+    DAP_SPI_Send_Header(requestByte, &ack, 1); // 1 Trn After ACK
+    if (ack == DAP_TRANSFER_OK) {
+      DAP_SPI_Write_Data(*data, parity);
+      /* Capture Timestamp */
+      if (request & DAP_TRANSFER_TIMESTAMP) {
+        DAP_Data.timestamp = TIMESTAMP_GET();
+      }
+      /* Idle cycles */
+      n = DAP_Data.transfer.idle_cycles;
+      if (n) { DAP_SPI_Generate_Cycle(n); }
 
-//       DAP_SPI_Disable();
-//       PIN_SWDIO_TMS_SET();
+      DAP_SPI_Disable();
+      PIN_SWDIO_TMS_SET();
 
-//       return ((uint8_t)ack);
-//     }
-//     else if ((ack == DAP_TRANSFER_WAIT) || (ack == DAP_TRANSFER_FAULT)) {
-//       /* already turnaround. */
+      return ((uint8_t)ack);
+    }
+    else if ((ack == DAP_TRANSFER_WAIT) || (ack == DAP_TRANSFER_FAULT)) {
+      /* already turnaround. */
 
-//       /* TODO: overrun transfer -> for read */
-//       #if (PRINT_SWD_PROTOCOL == 1)
-//       printf("WAIT\r\n");
-//       #endif
+      /* TODO: overrun transfer -> for read */
+#if (PRINT_SWD_PROTOCOL == 1)
+      printf("WAIT\r\n");
+#endif
 
-//     }
-//     else {
-//       //// FIXME: bug
-//       /* Protocol error */
-//       DAP_SPI_Disable();
-//       PIN_SWDIO_TMS_SET();
+    }
+    else {
+      /* Protocol error */
+      DAP_SPI_Disable();
+      PIN_SWDIO_TMS_SET();
 
-//       DAP_SPI_Enable();
-//       DAP_SPI_Protocol_Error_Write();
+      DAP_SPI_Enable();
+      DAP_SPI_Protocol_Error_Write();
 
-//       DAP_SPI_Disable();
-//       PIN_SWDIO_TMS_SET();
+      DAP_SPI_Disable();
+      PIN_SWDIO_TMS_SET();
 
-//       #if (PRINT_SWD_PROTOCOL == 1)
-//       printf("Protocol Error: Write\r\n");
-//       #endif
-//     }
+#if (PRINT_SWD_PROTOCOL == 1)
+      printf("Protocol Error: Write\r\n");
+#endif
+    }
 
-//     return ((uint8_t)ack);
+    return ((uint8_t)ack);
 
-//   }
+  }
 
-//   return DAP_TRANSFER_ERROR;
-// }
+  return DAP_TRANSFER_ERROR;
+}
 
 
 
@@ -521,8 +517,7 @@ static uint8_t SWD_Transfer_GPIO (uint32_t request, uint32_t *data, uint8_t need
 uint8_t  SWD_Transfer(uint32_t request, uint32_t *data) {
   switch (SWD_TransferSpeed) {
     case kTransfer_SPI:
-      //// FIXME: esp32
-      //return SWD_Transfer_SPI(request, data);
+      return SWD_Transfer_SPI(request, data);
     case kTransfer_GPIO_fast:
       return SWD_Transfer_GPIO(request, data, 0);
     case kTransfer_GPIO_normal:

@@ -45,6 +45,6 @@ void app_main(void)
     DAP_Setup();
 
 
-    xTaskCreatePinnedToCore(tcp_server_task, "tcp_server", 4096, (void*)AF_INET, 14, NULL, 0);
+    xTaskCreatePinnedToCore(tcp_server_task, "tcp_server", 4096, NULL, 14, NULL, 0);
     xTaskCreatePinnedToCore(DAP_Thread, "DAP_Task", 2048, NULL, 10, &kDAPTaskHandle, 1);
 }
