@@ -16,6 +16,7 @@
 #include "components/DAP/include/cmsis_compiler.h"
 
 #include "components/DAP/include/spi_op.h"
+#include "components/DAP/include/spi_switch.h"
 
 // soc register
 #include "esp32/rom/gpio.h"
@@ -236,7 +237,18 @@ __FORCEINLINE void DAP_SPI_Generate_Cycle(uint8_t num)
     // Start transmission
     DAP_SPI.cmd.usr = 1;
     // Wait for sending to complete
-    while (DAP_SPI.cmd.usr) continue;
+    // while (DAP_SPI.cmd.usr) continue;
+    // 200us reduce
+}
+
+/**
+ * @brief Quickly generate 1 clock
+ *
+ */
+__FORCEINLINE void DAP_SPI_Fast_Cycle()
+{
+    DAP_SPI_Release();
+    DAP_SPI_Acquire();
 }
 
 

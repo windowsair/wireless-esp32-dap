@@ -181,6 +181,27 @@ __FORCEINLINE void DAP_SPI_Deinit()
 
 
 /**
+ * @brief Gain control of SPI
+ *
+ */
+__FORCEINLINE void DAP_SPI_Acquire()
+{
+    PIN_FUNC_SELECT(IO_MUX_GPIO14_REG, FUNC_SPI);
+}
+
+
+/**
+ * @brief Release control of SPI
+ *
+ */
+__FORCEINLINE void DAP_SPI_Release()
+{
+    PIN_FUNC_SELECT(GPIO_PIN_MUX_REG[14], PIN_FUNC_GPIO);
+    GPIO.enable_w1ts = (0x01 << 14);
+}
+
+
+/**
  * @brief Use SPI acclerate
  *
  */

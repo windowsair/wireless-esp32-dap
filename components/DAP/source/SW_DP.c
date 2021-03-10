@@ -306,7 +306,7 @@ static uint8_t SWD_Transfer_SPI (uint32_t request, uint32_t *data) {
 
     }
     else if ((ack == DAP_TRANSFER_WAIT) || (ack == DAP_TRANSFER_FAULT)) {
-      DAP_SPI_Generate_Cycle(1);
+      DAP_SPI_Fast_Cycle();
 #if (PRINT_SWD_PROTOCOL == 1)
       printf("WAIT\r\n");
 #endif
