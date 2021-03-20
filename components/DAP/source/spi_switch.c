@@ -3,9 +3,9 @@
  * @author windowsair
  * @brief Switching between SPI mode and IO mode
  * @change: 2021-3-7 Support esp32 SPI
- *
- * @version 0.1
- * @date 2021-3-7
+ *          2021-3-20 Fix pure GPIO and problem of mode switching
+ * @version 0.2
+ * @date 2021-3-20
  *
  * @copyright Copyright (c) 2021
  *
@@ -52,6 +52,11 @@ typedef enum {
  */
 void DAP_SPI_Init()
 {
+    // In esp32, the driving of GPIO should be stopped,
+    // otherwise there will be issue in the spi
+    GPIO.out_w1tc = (0x1 << 13);
+    GPIO.out_w1tc = (0x1 << 14);
+
     // Enable spi module, We use SPI2(HSPI)
     DPORT_SET_PERI_REG_MASK(DPORT_PERIP_CLK_EN_REG, DPORT_SPI2_CLK_EN);
     DPORT_CLEAR_PERI_REG_MASK(DPORT_PERIP_RST_EN_REG, DPORT_SPI2_RST);
@@ -160,13 +165,13 @@ __FORCEINLINE void DAP_SPI_Deinit()
 {
     PIN_FUNC_SELECT(GPIO_PIN_MUX_REG[14], PIN_FUNC_GPIO);
     PIN_FUNC_SELECT(GPIO_PIN_MUX_REG[13], PIN_FUNC_GPIO); // MOSI
-    PIN_FUNC_SELECT(GPIO_PIN_MUX_REG[12], PIN_FUNC_GPIO); // MISO
+    //PIN_FUNC_SELECT(GPIO_PIN_MUX_REG[12], PIN_FUNC_GPIO); // MISO
 
     // enable SWCLK output
     GPIO.enable_w1ts = (0x01 << 14);
 
     // disable MISO output connect
-    GPIO.enable_w1tc = (0x1 << 12);
+    // GPIO.enable_w1tc = (0x1 << 12);
 
     // enable MOSI output & input
     GPIO.enable_w1ts |= (0x1 << 13);
@@ -176,7 +181,7 @@ __FORCEINLINE void DAP_SPI_Deinit()
     //GPIO.pin[13].pad_driver = 1;
 
     // disable MOSI pull up
-    REG_CLR_BIT(GPIO_PIN_MUX_REG[13], FUN_PU);
+    // REG_CLR_BIT(GPIO_PIN_MUX_REG[13], FUN_PU);
 }
 
 

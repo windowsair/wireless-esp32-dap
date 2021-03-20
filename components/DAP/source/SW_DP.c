@@ -152,7 +152,6 @@ void SWJ_Sequence_SPI (uint32_t count, const uint8_t *data) {
 #if (DAP_SWD != 0)
 void SWD_Sequence (uint32_t info, const uint8_t *swdo, uint8_t *swdi) {
   if (SWD_TransferSpeed == kTransfer_SPI) {
-    //// FIXME: esp32
     SWD_Sequence_SPI(info, swdo, swdi);
   } else {
     SWD_Sequence_GPIO(info, swdo, swdi);

@@ -388,27 +388,31 @@ static uint32_t DAP_SWJ_Clock(const uint8_t *request, uint8_t *response) {
 
   // clock >= 10MHz -> use 40MHz SPI
 
-  //// FIXME: remove this
-  clock = 10000000;
 
   if (clock >= 10000000) {
-    DAP_SPI_Init();
+    if (DAP_Data.debug_port != DAP_PORT_JTAG) {
+      DAP_SPI_Init();
+    }
     DAP_Data.fast_clock  = 1U;
     DAP_Data.clock_delay = 1U;
     SWD_TransferSpeed = kTransfer_SPI;
-  } else if (clock >= 2000000) {
-    // clock >= 2MHz -> Use GPIO with no program delay
-    DAP_SPI_Deinit();
+  } else if (clock >= 5000000) {
+    // clock >= 5MHz -> Use GPIO with no program delay
+    if (DAP_Data.debug_port != DAP_PORT_JTAG) {
+      DAP_SPI_Deinit();
+    }
     DAP_Data.fast_clock  = 1U;
     DAP_Data.clock_delay = 1U;
     SWD_TransferSpeed = kTransfer_GPIO_fast;
   } else {
     // clock < 2MHz -> Use GPIO with delay
-    DAP_SPI_Deinit();
+    if (DAP_Data.debug_port != DAP_PORT_JTAG) {
+      DAP_SPI_Deinit();
+    }
     DAP_Data.fast_clock  = 0U;
     SWD_TransferSpeed = kTransfer_GPIO_normal;
 
-    #define CPU_CLOCK_FIXED 240000000
+    #define CPU_CLOCK_FIXED 100000000
 
     delay = ((CPU_CLOCK_FIXED/2U) + (clock - 1U)) / clock;
     if (delay > IO_PORT_WRITE_CYCLES) {
