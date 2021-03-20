@@ -3,9 +3,9 @@
  * @author windowsair
  * @brief Using SPI for common transfer operations
  * @change: 2021-3-7 Support esp32 SPI
- *
- * @version 0.1
- * @date 2021-3-7
+ *          2021-3-10 Support 3-wire spi
+ * @version 0.2
+ * @date 2021-3-10
  *
  * @copyright Copyright (c) 2021
  *
@@ -117,12 +117,15 @@ void DAP_SPI_ReadBits(const uint8_t count, uint8_t *buf) {
     DAP_SPI.user.usr_mosi = 0;
     DAP_SPI.user.usr_miso = 1;
 
+    DAP_SPI.user.sio = true;
     DAP_SPI.miso_dlen.usr_miso_dbitlen = count - 1U;
 
     // Start transmission
     DAP_SPI.cmd.usr = 1;
     // Wait for reading to complete
     while (DAP_SPI.cmd.usr) continue;
+
+    DAP_SPI.user.sio = false;
 
     data_buf[0] = DAP_SPI.data_buf[0];
     data_buf[1] = DAP_SPI.data_buf[1];
@@ -153,6 +156,8 @@ __FORCEINLINE void DAP_SPI_Send_Header(const uint8_t packetHeaderData, uint8_t *
 
     DAP_SPI.user.usr_miso = 1;
 
+    DAP_SPI.user.sio = true;
+
     // 1 bit Trn(Before ACK) + 3bits ACK + TrnAferACK  - 1(prescribed)
     DAP_SPI.miso_dlen.usr_miso_dbitlen = 1U + 3U + TrnAfterACK - 1U;
 
@@ -163,6 +168,9 @@ __FORCEINLINE void DAP_SPI_Send_Header(const uint8_t packetHeaderData, uint8_t *
     DAP_SPI.cmd.usr = 1;
     // Wait for sending to complete
     while (DAP_SPI.cmd.usr) continue;
+
+    DAP_SPI.user.sio = false;
+
     dataBuf = DAP_SPI.data_buf[0];
     *ack = (dataBuf >> 1) & 0b111;
 }
@@ -182,6 +190,8 @@ __FORCEINLINE void DAP_SPI_Read_Data(uint32_t *resData, uint8_t *resParity)
     DAP_SPI.user.usr_mosi = 0;
     DAP_SPI.user.usr_miso = 1;
 
+    DAP_SPI.user.sio = true;
+
     // 1 bit Trn(End) + 3bits ACK + 32bis data + 1bit parity - 1(prescribed)
     DAP_SPI.miso_dlen.usr_miso_dbitlen = 1U + 32U + 1U - 1U;
 
@@ -192,6 +202,8 @@ __FORCEINLINE void DAP_SPI_Read_Data(uint32_t *resData, uint8_t *resParity)
 
     pU32Data[0] = DAP_SPI.data_buf[0];
     pU32Data[1] = DAP_SPI.data_buf[1];
+
+    DAP_SPI.user.sio = false;
 
     *resData = (dataBuf >> 0U) & 0xFFFFFFFFU;  // 32bits Response Data
     *resParity = (dataBuf >> (0U + 32U)) & 1U; // 3bits ACK + 32bis data

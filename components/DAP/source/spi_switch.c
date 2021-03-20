@@ -64,11 +64,11 @@ void DAP_SPI_Init()
     GPIO.func_out_sel_cfg[13].oen_inv_sel = 0;           // do not invert the output value
     PIN_FUNC_SELECT(IO_MUX_GPIO13_REG, FUNC_SPI);
 
-    GPIO.func_in_sel_cfg[HSPIQ_IN_IDX].sig_in_sel = 0;
-    PIN_INPUT_ENABLE(IO_MUX_GPIO12_REG);                 // MISO
-    GPIO.func_out_sel_cfg[12].oen_sel = 0;
-    GPIO.func_out_sel_cfg[12].oen_inv_sel = 0;
-    PIN_FUNC_SELECT(IO_MUX_GPIO12_REG, FUNC_SPI);
+    // GPIO.func_in_sel_cfg[HSPIQ_IN_IDX].sig_in_sel = 0;
+    // PIN_INPUT_ENABLE(IO_MUX_GPIO12_REG);                 // MISO
+    // GPIO.func_out_sel_cfg[12].oen_sel = 0;
+    // GPIO.func_out_sel_cfg[12].oen_inv_sel = 0;
+    // PIN_FUNC_SELECT(IO_MUX_GPIO12_REG, FUNC_SPI);
 
     GPIO.func_in_sel_cfg[HSPICLK_IN_IDX].sig_in_sel = 0;
     PIN_INPUT_ENABLE(IO_MUX_GPIO14_REG);                 // SCLK

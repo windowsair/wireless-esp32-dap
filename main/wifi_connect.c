@@ -206,6 +206,8 @@ static esp_netif_t* wifi_start(void)
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     ESP_ERROR_CHECK(esp_wifi_init(&cfg));
 
+    esp_wifi_set_ps(WIFI_PS_NONE);
+
     esp_netif_inherent_config_t esp_netif_config = ESP_NETIF_INHERENT_DEFAULT_WIFI_STA();
     // Prefix the interface description with the module TAG
     // Warning: the interface desc is used in tests to capture actual connection details (IP, gw, mask)
