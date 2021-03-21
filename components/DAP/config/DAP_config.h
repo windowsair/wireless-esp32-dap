@@ -199,10 +199,10 @@ __STATIC_INLINE uint8_t DAP_GetSerNumString(char *str)
 #define PIN_SWDIO 12      // SPI MISO
 #define PIN_SWDIO_MOSI 13 // SPI MOSI
 #define PIN_SWCLK 14
-#define PIN_TDO 2        // device TDO -> Host Data Input ~~~(use RTC pin 16)~~~
-#define PIN_TDI 4
-#define PIN_nTRST 18       // optional
-#define PIN_nRESET 19
+#define PIN_TDO 19        // device TDO -> Host Data Input ~~~(use RTC pin 16)~~~
+#define PIN_TDI 18
+#define PIN_nTRST 25       // optional
+#define PIN_nRESET 26
 // LED_BUILTIN
 #define PIN_LED_CONNECTED 25
 // LED_BUILTIN
@@ -479,7 +479,7 @@ __STATIC_FORCEINLINE void PIN_TDI_OUT(uint32_t bit)
  */
 __STATIC_FORCEINLINE uint32_t PIN_TDO_IN(void)
 {
-  return ((GPIO.in >> PIN_TDI) & 0x1) ? 1 : 0;
+  return ((GPIO.in >> PIN_TDO) & 0x1) ? 1 : 0;
 }
 
 // nTRST Pin I/O -------------------------------------------
