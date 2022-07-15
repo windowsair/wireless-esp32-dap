@@ -34,6 +34,8 @@
 extern int kSock;
 extern TaskHandle_t kDAPTaskHandle;
 
+static portMUX_TYPE my_mutex;
+
 int kRestartDAPHandle = 0;
 
 
@@ -54,7 +56,7 @@ typedef struct
 #define DAP_HANDLE_SIZE (sizeof(DAPPacetDataType))
 
 static DAPPacetDataType DAPDataProcessed;
-static int dap_respond = 0;
+static _Atomic int dap_respond = 0;
 
 
 // SWO Trace
@@ -142,10 +144,14 @@ void SWO_QueueTransfer(uint8_t *buf, uint32_t num)
     swo_data_num = num;
 }
 
-void DAP_Thread(void *argument)
+IRAM_ATTR void DAP_Thread(void *argument)
 {
+    // vPortCPUInitializeMutex(&my_mutex);
+    // portENTER_CRITICAL(&my_mutex);
+    //portDISABLE_INTERRUPTS();
+
     dap_dataIN_handle = xRingbufferCreate(DAP_HANDLE_SIZE * 20, RINGBUF_TYPE_BYTEBUF);
-    dap_dataOUT_handle = xRingbufferCreate(DAP_HANDLE_SIZE * 20, RINGBUF_TYPE_BYTEBUF);
+    dap_dataOUT_handle = xRingbufferCreate(368 * 20, RINGBUF_TYPE_BYTEBUF);
     data_response_mux = xSemaphoreCreateMutex();
     size_t packetSize;
     int resLength;
@@ -157,6 +163,11 @@ void DAP_Thread(void *argument)
         printf("Can not create DAP ringbuf/mux!\r\n");
         vTaskDelete(NULL);
     }
+
+    ulTaskNotifyTake(pdFALSE, portMAX_DELAY);
+    vPortCPUInitializeMutex(&my_mutex);
+    portENTER_CRITICAL(&my_mutex);
+    goto start;
     for (;;)
     {
 
@@ -179,21 +190,15 @@ void DAP_Thread(void *argument)
             }
 
             ulTaskNotifyTake(pdFALSE, portMAX_DELAY);
+start:
             packetSize = 0;
             item = (DAPPacetDataType *)xRingbufferReceiveUpTo(dap_dataIN_handle, &packetSize,
-                                                          (1 / portTICK_RATE_MS), DAP_HANDLE_SIZE);
+                                                          0, DAP_HANDLE_SIZE);
             if (packetSize == 0)
             {
                 break;
             }
 
-            else if (packetSize < DAP_HANDLE_SIZE)
-            {
-                printf("Wrong data in packet size:%d , data in remain: %d\r\n", packetSize, (int)xRingbufferGetMaxItemSize(dap_dataIN_handle));
-                vRingbufferReturnItem(dap_dataIN_handle, (void *)item);
-                break;
-                // This may not happen because there is a semaphore acquisition
-            }
 
             if (item->buf[0] == ID_DAP_QueueCommands)
             {
@@ -209,13 +214,13 @@ void DAP_Thread(void *argument)
         #if (USE_WINUSB == 1)
             DAPDataProcessed.length = resLength;
         #endif
-            xRingbufferSend(dap_dataOUT_handle, (void *)&DAPDataProcessed, DAP_HANDLE_SIZE, portMAX_DELAY);
+            xRingbufferSend(dap_dataOUT_handle, (void *)&DAPDataProcessed, 368, portMAX_DELAY);
 
-            if (xSemaphoreTake(data_response_mux, portMAX_DELAY) == pdTRUE)
-            {
+            // if (xSemaphoreTake(data_response_mux, portMAX_DELAY) == pdTRUE)
+            // {
                 ++dap_respond;
-                xSemaphoreGive(data_response_mux);
-            }
+            //     xSemaphoreGive(data_response_mux);
+            // }
         }
     }
 }
@@ -229,24 +234,24 @@ int fast_reply(uint8_t *buf, uint32_t length)
             DAPPacetDataType *item;
             size_t packetSize = 0;
             item = (DAPPacetDataType *)xRingbufferReceiveUpTo(dap_dataOUT_handle, &packetSize,
-                                                     (10 / portTICK_RATE_MS), DAP_HANDLE_SIZE);
-            if (packetSize == DAP_HANDLE_SIZE)
+                                                     (10 / portTICK_RATE_MS), 368);
+            if (packetSize == 368)
             {
                 unpack((uint32_t *)buf, sizeof(usbip_stage2_header));
 
             #if (USE_WINUSB == 1)
                 uint32_t resLength = item->length;
-                send_stage2_submit_data((usbip_stage2_header *)buf, 0, item->buf, resLength);
+                send_stage2_submit_data_fast((usbip_stage2_header *)buf, 0, item->buf, resLength);
             #else
-                send_stage2_submit_data((usbip_stage2_header *)buf, 0, item->buf, DAP_HANDLE_SIZE);
+                send_stage2_submit_data_fast((usbip_stage2_header *)buf, 0, item->buf, DAP_HANDLE_SIZE);
             #endif
 
 
-                if (xSemaphoreTake(data_response_mux, portMAX_DELAY) == pdTRUE)
-                {
+                // if (xSemaphoreTake(data_response_mux, portMAX_DELAY) == pdTRUE)
+                // {
                     --dap_respond;
-                    xSemaphoreGive(data_response_mux);
-                }
+                //     xSemaphoreGive(data_response_mux);
+                // }
 
                 vRingbufferReturnItem(dap_dataOUT_handle, (void *)item);
                 return 1;

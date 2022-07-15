@@ -62,7 +62,26 @@ const uint8_t bosDescriptor[kLengthOfBos] =
     0x05,                       // bLength of this descriptor
     USB_DESCRIPTOR_TYPE_BOS,    // BOS Descriptor type(Constant)
     USBShort(kLengthOfBos),     // wLength
-    0x01,                       // bNumDeviceCaps -> only 0x01 for OS2.0 descriptor
+    0x03,                       // bNumDeviceCaps -> only 0x01 for OS2.0 descriptor
+
+    // USB 2.0 extension
+    0x07, /* Descriptor size */
+    USB_DESCRIPTOR_TYPE_DEVICE_CAPABILITY, /* Device capability type descriptor */
+    USB_DEVICE_CAPABILITY_TYPE_USB2_0_EXTENSION, /* USB 2.0 extension capability type */
+    0x02, 0x00, 0x00, 0x00, /* Supported device level features: LPM support  */
+
+    /* SuperSpeed device capability */
+    0x0A, /* Descriptor size */
+    USB_DESCRIPTOR_TYPE_DEVICE_CAPABILITY, /* Device capability type descriptor */
+    USB_DEVICE_CAPABILITY_TYPE_SUPERSPEED_USB, /* SuperSpeed device capability type */
+    0x00, /* Supported device level features(LTM Capable)  */
+    0x08, 0x00, /* Speeds supported by the device : SS, ~~HS~ and ~~FS~~ */
+    0x03, /* Functionality support */
+    0x00, /* U1 Device Exit latency */
+    0x00, 0x00, /* U2 Device Exit latency */
+
+
+
 
     // Microsoft OS 2.0 platform capability descriptor header (Table 4)
     // See also:
@@ -71,7 +90,7 @@ const uint8_t bosDescriptor[kLengthOfBos] =
     0x1C,       // bLength of this first device capability descriptor
                 // bLength -> The total length of the remaining arrays containing this field
     USB_DESCRIPTOR_TYPE_DEVICE_CAPABILITY, // bDescriptorType
-    USB_DEVICE_CAPABILITY_TYPE_PLATFORM,   // bDevCapabilityType
+    USB_DEVICE_CAPABILITY_TYPE_PLATFORM, // bDevCapabilityType
 
     // Capability-Dependent (See USB3.0 Specification Table 9-10.)
     0x00,                       // bReserved

@@ -30,7 +30,7 @@ const uint8_t kUSBd0DeviceDescriptor[0x12] =
     USB_DT_DEVICE,    // bDescriptorType
 
 #if (USE_WINUSB == 1)
-    USBShort(0x0210), // bcdUSB
+    USBShort(0x0300), // bcdUSB
 #else
     USBShort(0x0200), // bcdUSB
 #endif
@@ -41,7 +41,8 @@ const uint8_t kUSBd0DeviceDescriptor[0x12] =
     0x00, // bDeviceSubClass
     0x00, // bDeviceProtocol
 
-    USBD0_MAX_PACKET0,                  // bMaxPacketSize0 Maximum packet size for default pipe.
+    //USBD0_MAX_PACKET0,                  // bMaxPacketSize0 Maximum packet size for default pipe.
+    0x09,
     USBShort(USBD0_DEV_DESC_IDVENDOR),  // idVendor Vendor ID (VID).
     USBShort(USBD0_DEV_DESC_IDPRODUCT), // idProduct Product ID (PID).
     USBShort(USBD0_DEV_DESC_BCDDEVICE), // bcdDevice Device Version BCD.
@@ -63,7 +64,7 @@ const uint8_t kUSBd0DeviceDescriptor[0x12] =
 // Standard Interface Descriptor
 
 #if (USE_WINUSB ==1)
-const uint8_t kUSBd0InterfaceDescriptor[0x1E]=
+const uint8_t kUSBd0InterfaceDescriptor[0x30]=
 {
     0x09,                                   // bLength
     USB_DT_INTERFACE,                       // bDescriptorType
@@ -100,9 +101,18 @@ const uint8_t kUSBd0InterfaceDescriptor[0x1E]=
     USB_DT_ENDPOINT,                                           // bDescriptorType
     0x01,                                                      // bEndpointAddress
     USB_ENDPOINT_ATTR_BULK,                                    // bmAttributes
-    USBShort(512),                                             // wMaxPacketSize
+    USBShort(1024),                                             // wMaxPacketSize
     // We assume that it always runs in High Speed.
     0x00, // bInterval
+
+    /*                 SuperSpeed Endpoint Companion      */
+    0x06,                                                      // bLength
+    USB_DT_SUPERSPEED_USB_ENDPOINT_COMPANION,
+    0x00,                                                      // bMaxBurst
+    0x00,                                                      // bmAttributes(MaxStream for Bulk)
+    0x00, 0x00,                                                // wBytesPerInterval -> 0 for Bulk
+
+
 
     /*                 Pysical endpoint 1                 */
 
@@ -111,8 +121,17 @@ const uint8_t kUSBd0InterfaceDescriptor[0x1E]=
     USB_DT_ENDPOINT,                                           // bDescriptorType
     0x81,                                                      // bEndpointAddress
     USB_ENDPOINT_ATTR_BULK,                                    // bmAttributes
-    USBShort(512),                                             // wMaxPacketSize
+    USBShort(1024),                                             // wMaxPacketSize
     0x00,                                                      // bInterval
+
+    /*                 SuperSpeed Endpoint Companion      */
+    0x06,                                                      // bLength
+    USB_DT_SUPERSPEED_USB_ENDPOINT_COMPANION,
+    0x00,                                                      // bMaxBurst
+    0x00,                                                      // bmAttributes(MaxStream for Bulk)
+    0x00, 0x00,                                                // wBytesPerInterval -> 0 for Bulk
+
+
 
     /*                 Pysical endpoint 2                */
 
@@ -121,8 +140,15 @@ const uint8_t kUSBd0InterfaceDescriptor[0x1E]=
     USB_DT_ENDPOINT,                                           // bDescriptorType
     0x82,                                                      // bEndpointAddress
     USB_ENDPOINT_ATTR_BULK,                                    // bmAttributes
-    USBShort(512),                                             // wMaxPacketSize
+    USBShort(1024),                                             // wMaxPacketSize
     0x00,                                                      // bInterval
+
+    /*                 SuperSpeed Endpoint Companion      */
+    0x06,                                                      // bLength
+    USB_DT_SUPERSPEED_USB_ENDPOINT_COMPANION,
+    0x00,                                                      // bMaxBurst
+    0x00,                                                      // bmAttributes(MaxStream for Bulk)
+    0x00, 0x00,                                                // wBytesPerInterval -> 0 for Bulk
 
 
 };
@@ -170,7 +196,7 @@ const uint8_t kUSBd0InterfaceDescriptor[0x20]=
     USB_DT_ENDPOINT,                                           // bDescriptorType
     0x01,                                                      // bEndpointAddress
     USB_ENDPOINT_ATTR_INTERRUPT,                               // bmAttributes
-    USBShort(64),                                              // wMaxPacketSize
+    USBShort(64),                                             // wMaxPacketSize
     0x01,                                                      // bInterval
 };
 #endif

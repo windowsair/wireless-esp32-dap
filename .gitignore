@@ -2,3 +2,5 @@
 .vscode/
 build/
 main/my_task.c
+tmp/
+sdkconfig.old

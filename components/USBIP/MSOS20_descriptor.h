@@ -13,9 +13,8 @@
 #define __MSOS20_DESCRIPTOR_H__
 
 #define kLengthOfMsOS20 0xA2
-#define kLengthOfBos 0x21
+#define kLengthOfBos 0x32
 #define kValueOfbMS_VendorCode  0x01// Just set to 0x01
-
 extern const uint8_t bosDescriptor[kLengthOfBos];
 extern const uint8_t msOs20DescriptorSetHeader[kLengthOfMsOS20];
 
@@ -23,6 +22,11 @@ extern const uint8_t msOs20DescriptorSetHeader[kLengthOfMsOS20];
 
 // Platform capability BOS descriptor, Table 1.
 #define USB_DEVICE_CAPABILITY_TYPE_PLATFORM 5
+
+// USB 2.0 Extension Descriptor, USB3.0 Specification Table 9-11
+#define USB_DEVICE_CAPABILITY_TYPE_USB2_0_EXTENSION 2
+//  SuperSpeed USB specific device level capabilities, USB3.0 Specification Table 9-11
+#define USB_DEVICE_CAPABILITY_TYPE_SUPERSPEED_USB 3
 
 // Platform capability UUID,  Table 3.
 // {D8DD60DF-4589-4CC7-9CD2-659D9E648A9F}
@@ -78,5 +82,6 @@ extern const uint8_t msOs20DescriptorSetHeader[kLengthOfMsOS20];
 #define USB_SUBCOMPATID_BT_V20EDR        "EDR\0\0\0\0"
 
 /* Microsoft Extended Compat ID OS Feature Descriptor END */
+
 
 #endif

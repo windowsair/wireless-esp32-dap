@@ -35,7 +35,7 @@ uint8_t kState = ACCEPTING;
 int kSock = -1;
 
 
-static uint8_t tcp_rx_buffer[1024];
+static uint8_t tcp_rx_buffer[2048];
 static char addr_str[128];
 
 void tcp_server_task()

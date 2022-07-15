@@ -363,6 +363,25 @@ void send_stage2_submit_data(usbip_stage2_header *req_header, int32_t status, co
     }
 }
 
+void send_stage2_submit_data_fast(usbip_stage2_header *req_header, int32_t status, const void *const data, int32_t data_length)
+{
+    const uint8_t * send_buf = (uint8_t *)req_header;
+
+    req_header->base.command = USBIP_STAGE2_RSP_SUBMIT;
+    req_header->base.direction = !(req_header->base.direction);
+
+    memset(&(req_header->u.ret_submit), 0, sizeof(usbip_stage2_header_ret_submit));
+
+    req_header->u.ret_submit.status = status;
+    req_header->u.ret_submit.data_length = data_length;
+
+    pack(req_header, sizeof(usbip_stage2_header));
+
+    // payload
+    memcpy(&send_buf[sizeof(usbip_stage2_header)], data, data_length);
+    send(kSock, send_buf, sizeof(usbip_stage2_header) + data_length, 0);
+}
+
 static void handle_unlink(usbip_stage2_header *header)
 {
     printf("s2 handling cmd unlink...\r\n");
