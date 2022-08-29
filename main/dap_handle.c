@@ -31,6 +31,8 @@
 #include "lwip/sys.h"
 #include <lwip/netdb.h>
 
+#define DISABLE_CPU1_INTR 0
+
 extern int kSock;
 extern TaskHandle_t kDAPTaskHandle;
 
@@ -56,7 +58,12 @@ typedef struct
 #define DAP_HANDLE_SIZE (sizeof(DAPPacetDataType))
 
 static DAPPacetDataType DAPDataProcessed;
+
+#if (DISABLE_CPU1_INTR == 1)
 static _Atomic int dap_respond = 0;
+#else
+static int dap_respond = 0;
+#endif
 
 
 // SWO Trace
@@ -164,10 +171,13 @@ IRAM_ATTR void DAP_Thread(void *argument)
         vTaskDelete(NULL);
     }
 
+#if (DISABLE_CPU1_INTR == 1)
     ulTaskNotifyTake(pdFALSE, portMAX_DELAY);
     vPortCPUInitializeMutex(&my_mutex);
     portENTER_CRITICAL(&my_mutex);
     goto start;
+#endif
+
     for (;;)
     {
 
@@ -216,11 +226,17 @@ start:
         #endif
             xRingbufferSend(dap_dataOUT_handle, (void *)&DAPDataProcessed, 368, portMAX_DELAY);
 
-            // if (xSemaphoreTake(data_response_mux, portMAX_DELAY) == pdTRUE)
-            // {
+
+#if (DISABLE_CPU1_INTR == 1)
+            if (xSemaphoreTake(data_response_mux, portMAX_DELAY) == pdTRUE)
+            {
                 ++dap_respond;
-            //     xSemaphoreGive(data_response_mux);
-            // }
+                xSemaphoreGive(data_response_mux);
+            }
+#else
+            ++dap_respond;
+#endif
+
         }
     }
 }
@@ -246,13 +262,15 @@ int fast_reply(uint8_t *buf, uint32_t length)
                 send_stage2_submit_data_fast((usbip_stage2_header *)buf, 0, item->buf, DAP_HANDLE_SIZE);
             #endif
 
-
-                // if (xSemaphoreTake(data_response_mux, portMAX_DELAY) == pdTRUE)
-                // {
+#if (DISABLE_CPU1_INTR == 1)
+                if (xSemaphoreTake(data_response_mux, portMAX_DELAY) == pdTRUE)
+                {
                     --dap_respond;
-                //     xSemaphoreGive(data_response_mux);
-                // }
-
+                    xSemaphoreGive(data_response_mux);
+                }
+#else
+                --dap_respond;
+#endif
                 vRingbufferReturnItem(dap_dataOUT_handle, (void *)item);
                 return 1;
             }
